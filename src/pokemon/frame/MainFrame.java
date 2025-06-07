@@ -10,8 +10,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import pokemon.panel.ui.EditionPanel;
-import pokemon.panel.ui.GraphicResourcesPanel;
+import pokemon.frame.panel.EditionPanel;
+import pokemon.frame.panel.GraphicResourcesPanel;
 
 public class MainFrame extends JFrame {
 

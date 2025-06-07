@@ -5,8 +5,8 @@ import java.lang.reflect.Method;
 
 public class RegisteredListener {
 	
-	private Method method;
-	private Object listener;
+	private final Method method;
+	private final Object listener;
 
 	/**
 	 * Registers the listener to call it after.

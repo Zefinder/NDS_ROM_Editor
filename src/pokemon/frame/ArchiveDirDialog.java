@@ -16,10 +16,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 import pokemon.event.Event;
-import pokemon.event.EventManager;
 import pokemon.event.ui.ArchiveCreatedEvent;
 import pokemon.files.archive.CompressionMethodEnum;
 import pokemon.files.archive.NARC;
+import pokemon.manager.EventManager;
 
 public class ArchiveDirDialog extends JDialog {
 
