@@ -6,11 +6,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 
 import javax.swing.JColorChooser;
-import javax.swing.JPanel;
 
 import pokemon.event.Event;
 import pokemon.event.EventListener;
@@ -18,7 +15,7 @@ import pokemon.event.palette.PaletteColorModifiedEvent;
 import pokemon.logic.Palette;
 import pokemon.manager.EventManager;
 
-public class PalettePanel extends JPanel implements MouseListener, MouseMotionListener {
+public class PalettePanel extends FileUIEditionPanel {
 
 	/**
 	 * 
@@ -99,6 +96,11 @@ public class PalettePanel extends JPanel implements MouseListener, MouseMotionLi
 				}
 			}
 		}
+	}
+	
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return getPreferredSize();
 	}
 
 	@Override

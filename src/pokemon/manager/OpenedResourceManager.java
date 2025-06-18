@@ -19,23 +19,57 @@ public class OpenedResourceManager implements Manager {
 	}
 
 	public Palette openPalette(String paletteName, Palette palette) {
-		return openedPalettes.put(paletteName, palette);
+		return openedPalettes.put(extractName(paletteName), palette);
 	}
 
 	public Palette closePalette(String paletteName) {
-		return openedPalettes.remove(paletteName);
+		return openedPalettes.remove(extractName(paletteName));
 	}
 
 	public Palette getPalette(String paletteName) {
-		return openedPalettes.get(paletteName);
+		return openedPalettes.get(extractName(paletteName));
 	}
-	
+
+	public Palette getPaletteOrAvailable(String paletteName) {
+		Palette palette = getPalette(extractName(paletteName));
+
+		if (palette == null) {
+			if (hasOpenedPalette()) {
+				palette = getPalette(getOpenedPalettesName()[0]);
+			} else {
+				palette = getPalette(null);
+			}
+		}
+
+		return palette;
+	}
+
 	public boolean hasOpenedPalette() {
 		return openedPalettes.size() > 1;
 	}
-	
+
 	public String[] getOpenedPalettesName() {
-		return openedPalettes.keySet().stream().filter(t -> t != null).toArray(String[]::new);
+		return openedPalettes.keySet().stream().filter(t -> t != null).map(t -> {
+			int slashIndex = t.lastIndexOf('/');
+			if (slashIndex != -1) {
+				t = t.substring(0, slashIndex);
+			}
+			
+			return extractName(t);
+		}).toArray(String[]::new);
+	}
+
+	public String extractName(String name) {
+		if (name == null) {
+			return null;
+		}
+		
+		int dotIndex = name.lastIndexOf('.');
+		if (dotIndex != -1) {
+			name = name.substring(0, dotIndex);
+		}
+		
+		return name;
 	}
 
 	@Override
@@ -48,10 +82,10 @@ public class OpenedResourceManager implements Manager {
 	public static OpenedResourceManager getInstance() {
 		return instance;
 	}
-	
+
 	@EventListener
 	public void onPaletteOpened(PaletteOpenedEvent event) {
-		openedPalettes.put(event.getPaletteName(), event.getOpenedPalette());
+		openPalette(event.getPaletteName(), event.getOpenedPalette());
 	}
 
 }

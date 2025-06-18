@@ -11,10 +11,17 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
+import pokemon.event.Event;
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteOpenedEvent;
-import pokemon.event.ui.TilePropertiesChangedEvent;
-import pokemon.event.ui.TilePropertiesChangedEvent.ChangedProperty;
+import pokemon.event.tile.TilesPaletteIndexChangedEvent;
+import pokemon.event.tile.TilesPaletteSelectedEvent;
+import pokemon.event.tile.TilesPerColumnChangedEvent;
+import pokemon.event.tile.TilesPerRowChangedEvent;
+import pokemon.event.tile.TilesPixelGridChangedEvent;
+import pokemon.event.tile.TilesTileGridChangedEvent;
+import pokemon.event.tile.TilesTransparentBackgroundChangedEvent;
+import pokemon.event.tile.TilesZoomChangedEvent;
 import pokemon.files.graphics.GraphicResources.ColorBitDepth;
 import pokemon.manager.EventManager;
 import pokemon.manager.OpenedResourceManager;
@@ -29,8 +36,6 @@ public class TilePropertiesPanel extends FormatProperties {
 			new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 	private static final DefaultComboBoxModel<Integer> EIGHT_BITS_MODEL = new DefaultComboBoxModel<Integer>(
 			new Integer[] { 0 });
-
-	private String tileName;
 
 	private DefaultComboBoxModel<String> model;
 	private JComboBox<String> palettesList;
@@ -57,30 +62,32 @@ public class TilePropertiesPanel extends FormatProperties {
 	 */
 	public TilePropertiesPanel(String tileName, ColorBitDepth colorBitDepth, int tileX, int tileY,
 			boolean isTileSelected) {
-		this.tileName = tileName;
-
 		this.setBorder(BorderFactory.createTitledBorder(tileName));
 
 		GridBagConstraints c = super.getDefaultConstraints();
 		c.insets = new Insets(3, 8, 2, 8);
 
-		// Use as tiles button
-//		useButton = new JButton("Use tiles");
-//		useButton.setEnabled(!isTileSelected);
-//		useButton.addActionListener(_ -> EventManager.getInstance().throwEvent(new TileSelectedEvent(tileName)));
-		
 		// List of possible palettes
 		String[] openedPalettes = OpenedResourceManager.getInstance().getOpenedPalettesName();
 		model = new DefaultComboBoxModel<String>();
+		String extractedTileName = OpenedResourceManager.getInstance().extractName(tileName);
 		for (String paletteName : openedPalettes) {
 			model.addElement(paletteName);
+			if (paletteName.equals(extractedTileName)) {
+				model.setSelectedItem(paletteName);
+			}
 		}
-		
+
 		palettesList = new JComboBox<String>(model);
 		if (openedPalettes.length == 0) {
 			palettesList.setEnabled(false);
 		}
-		
+		palettesList.addActionListener(_ -> {
+			String paletteName = (String) palettesList.getSelectedItem();
+			Event event = new TilesPaletteSelectedEvent(tileName, paletteName);
+			EventManager.getInstance().throwEvent(event);
+		});
+
 		// Color bit depth
 		JLabel colorBitDepthLabel = new JLabel("Color bit depth", SwingConstants.LEFT);
 		colorBitDepthList = new JComboBox<String>(new String[] { "4 bits", "8 bits" });
@@ -88,6 +95,7 @@ public class TilePropertiesPanel extends FormatProperties {
 			if (colorBitDepthList.getSelectedIndex() == 0) {
 				// TODO Send event to change mode for tiles
 				usedPaletteList.setModel(FOUR_BITS_MODEL);
+				
 			} else {
 				// TODO Send event to change mode for tiles
 				usedPaletteList.setModel(EIGHT_BITS_MODEL);
@@ -101,45 +109,40 @@ public class TilePropertiesPanel extends FormatProperties {
 		} else {
 			usedPaletteList.setModel(EIGHT_BITS_MODEL);
 		}
-		usedPaletteList
-				.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-						ChangedProperty.SELECTED_PALETTE, usedPaletteList.getSelectedIndex())));
+		usedPaletteList.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesPaletteIndexChangedEvent(tileName, usedPaletteList.getSelectedIndex())));
 
 		JLabel zoomLabel = new JLabel("Zoom", SwingConstants.LEFT);
 		zoomList = new JComboBox<Integer>(new Integer[] { 1, 2, 3, 4, 5 });
-		zoomList.addActionListener(_ -> EventManager.getInstance().throwEvent(
-				new TilePropertiesChangedEvent(tileName, ChangedProperty.ZOOM, (int) zoomList.getSelectedItem())));
+		zoomList.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesZoomChangedEvent(tileName, (int) zoomList.getSelectedItem())));
 		zoomList.setSelectedIndex(2);
 
 		JLabel tilesInRowLabel = new JLabel("Tiles in a row", SwingConstants.LEFT);
 		JFormattedTextField tilesInRow = new JFormattedTextField();
-		tilesInRow.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-				ChangedProperty.TILE_X, Integer.valueOf(tilesInRow.getText()))));
+		tilesInRow.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesPerRowChangedEvent(tileName, Integer.valueOf(tilesInRow.getText()))));
 		tilesInRow.setValue(tileX);
 
 		JLabel tilesInColumnLabel = new JLabel("Tiles in a column", SwingConstants.LEFT);
 		JFormattedTextField tilesInColumn = new JFormattedTextField();
-		tilesInColumn
-				.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-						ChangedProperty.TILE_Y, Integer.valueOf(tilesInColumn.getText()))));
+		tilesInColumn.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesPerColumnChangedEvent(tileName, Integer.valueOf(tilesInColumn.getText()))));
 		tilesInColumn.setValue(tileY);
 
 		JCheckBox transparentBackground = new JCheckBox("Set transparent background");
-		transparentBackground
-				.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-						ChangedProperty.TRANSPARENT_BG, transparentBackground.isSelected() ? 0 : 1)));
+		transparentBackground.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesTransparentBackgroundChangedEvent(tileName, transparentBackground.isSelected())));
 		transparentBackground.setSelected(true);
 
 		JCheckBox showTileGrid = new JCheckBox("Show tile grid");
-		showTileGrid
-				.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-						ChangedProperty.SHOW_TILE_GRID, showTileGrid.isSelected() ? 1 : 0)));
+		showTileGrid.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesTileGridChangedEvent(tileName, showTileGrid.isSelected())));
 		showTileGrid.setSelected(true);
 
 		JCheckBox showPixelGrid = new JCheckBox("Show pixel grid");
-		showPixelGrid
-				.addActionListener(_ -> EventManager.getInstance().throwEvent(new TilePropertiesChangedEvent(tileName,
-						ChangedProperty.SHOW_PIXEL_GRID, showPixelGrid.isSelected() ? 1 : 0)));
+		showPixelGrid.addActionListener(_ -> EventManager.getInstance()
+				.throwEvent(new TilesPixelGridChangedEvent(tileName, showPixelGrid.isSelected())));
 		showPixelGrid.setSelected(false);
 
 		int y = 0;
@@ -158,10 +161,10 @@ public class TilePropertiesPanel extends FormatProperties {
 
 	@EventListener
 	public void onPaletteOpened(PaletteOpenedEvent event) {
-		model.addElement(event.getPaletteName());
+		model.addElement(OpenedResourceManager.getInstance().extractName(event.getPaletteName()));
 		if (!palettesList.isEnabled()) {
 			palettesList.setEnabled(true);
 		}
 	}
-	
+
 }

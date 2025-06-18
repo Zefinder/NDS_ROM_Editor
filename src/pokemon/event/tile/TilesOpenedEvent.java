@@ -1,28 +1,22 @@
 package pokemon.event.tile;
 
-import pokemon.event.Event;
 import pokemon.files.graphics.GraphicResources.ColorBitDepth;
 
-public class TileOpenedEvent implements Event {
+public class TilesOpenedEvent extends TilesEvent {
 
-	private String tileName;
 	private ColorBitDepth colorBitDepth;
 	private int tileX;
 	private int tileY;
 	private boolean isSelected;
 
-	public TileOpenedEvent(String tileName, ColorBitDepth colorBitDepth, int tileX, int tileY, boolean isSelected) {
-		this.tileName = tileName;
+	public TilesOpenedEvent(String tileName, ColorBitDepth colorBitDepth, int tileX, int tileY, boolean isSelected) {
+		super(tileName);
 		this.colorBitDepth = colorBitDepth;
 		this.tileX = tileX;
 		this.tileY = tileY;
 		this.isSelected = isSelected;
 	}
 
-	public String getTileName() {
-		return tileName;
-	}
-	
 	public ColorBitDepth getColorBitDepth() {
 		return colorBitDepth;
 	}

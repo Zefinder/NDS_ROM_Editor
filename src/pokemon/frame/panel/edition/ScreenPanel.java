@@ -4,25 +4,23 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-
-import javax.swing.JPanel;
+import java.awt.event.MouseEvent;
 
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteSelectedEvent;
-import pokemon.frame.panel.EditionPanel;
 import pokemon.logic.Palette;
 import pokemon.logic.ScreenData;
 import pokemon.logic.Tile;
 import pokemon.manager.EventManager;
+import pokemon.manager.OpenedResourceManager;
 
-public class ScreenPanel extends JPanel {
+public class ScreenPanel extends FileUIEditionPanel {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -1003657286801521283L;
 
-	private EditionPanel editionPanel;
 	private ScreenData[] screenData;
 	private Palette palette;
 	private Tile[] tiles;
@@ -31,9 +29,7 @@ public class ScreenPanel extends JPanel {
 
 	private int zoom;
 
-	public ScreenPanel(EditionPanel editionPanel, ScreenData[] screenData, Palette palette, Tile[] tiles,
-			int screenWidth, int screenHeight) {
-		this.editionPanel = editionPanel;
+	public ScreenPanel(ScreenData[] screenData, Palette palette, Tile[] tiles, int screenWidth, int screenHeight) {
 		this.screenData = screenData;
 		this.palette = palette;
 		this.tiles = tiles;
@@ -41,11 +37,15 @@ public class ScreenPanel extends JPanel {
 		this.screenHeight = screenHeight;
 
 		this.zoom = 3;
-		this.setPreferredSize(new Dimension(8 * screenWidth * zoom, 8 * screenHeight * zoom));
+		updateSize();
 
 		EventManager.getInstance().registerListener(this);
 	}
 
+	private void updateSize() {
+		this.setPreferredSize(new Dimension(8 * screenWidth * zoom, 8 * screenHeight * zoom));
+	}
+	
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -78,8 +78,41 @@ public class ScreenPanel extends JPanel {
 
 	@EventListener
 	public void onPaletteSelected(PaletteSelectedEvent event) {
-		this.palette = editionPanel.getCurrentPalette();
+		this.palette = OpenedResourceManager.getInstance().getPalette(event.getPaletteName());
 		this.repaint();
+	}
+	
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return null;
+	}
+	
+	@Override
+	public void mouseClicked(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseDragged(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseExited(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseMoved(MouseEvent e) {
+	}
+	
+	@Override
+	public void mousePressed(MouseEvent e) {
+	}
+	
+	@Override
+	public void mouseReleased(MouseEvent e) {
 	}
 
 }

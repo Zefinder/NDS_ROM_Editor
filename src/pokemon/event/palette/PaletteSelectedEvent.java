@@ -2,6 +2,7 @@ package pokemon.event.palette;
 
 import pokemon.event.Event;
 
+@Deprecated(forRemoval = true)
 public class PaletteSelectedEvent implements Event {
 
 	private String paletteName;

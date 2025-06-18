@@ -17,7 +17,7 @@ import javax.swing.JPanel;
 import pokemon.event.Event;
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteColorModifiedEvent;
-import pokemon.event.tile.TileEditSelectedEvent;
+import pokemon.event.tile.TileSelectedEvent;
 import pokemon.event.tile.TilePixelModifiedEvent;
 import pokemon.logic.Palette;
 import pokemon.manager.EventManager;
@@ -116,7 +116,7 @@ public class TileEditionPanel extends JPanel implements MouseListener, MouseMoti
 	}
 
 	@EventListener
-	public void onSelectedTile(TileEditSelectedEvent event) {
+	public void onSelectedTile(TileSelectedEvent event) {
 		selectedTile = event.getTileIndex();
 		tileData = event.getTileData();
 		repaint();

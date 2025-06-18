@@ -5,39 +5,44 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-
-import javax.swing.JPanel;
 
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteColorModifiedEvent;
-import pokemon.event.palette.PaletteSelectedEvent;
 import pokemon.event.tile.TilePixelModifiedEvent;
-import pokemon.event.ui.TilePropertiesChangedEvent;
-import pokemon.frame.panel.EditionPanel;
+import pokemon.event.tile.TilesPaletteColorDepthChangedEvent;
+import pokemon.event.tile.TilesPaletteIndexChangedEvent;
+import pokemon.event.tile.TilesPaletteSelectedEvent;
+import pokemon.event.tile.TilesPerColumnChangedEvent;
+import pokemon.event.tile.TilesPerRowChangedEvent;
+import pokemon.event.tile.TilesPixelGridChangedEvent;
+import pokemon.event.tile.TilesTileGridChangedEvent;
+import pokemon.event.tile.TilesTransparentBackgroundChangedEvent;
+import pokemon.event.tile.TilesZoomChangedEvent;
+import pokemon.files.graphics.GraphicResources.ColorBitDepth;
 import pokemon.logic.Palette;
 import pokemon.logic.Tile;
 import pokemon.manager.EventManager;
+import pokemon.manager.OpenedResourceManager;
 
-public class TilePanel extends JPanel implements MouseListener, MouseMotionListener {
+public class TilePanel extends FileUIEditionPanel {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1381704300700120039L;
 
-	private EditionPanel editionPanel;
 	private String tileName;
 	private Tile[] tiles;
-	private Palette palette;
 
 	private int tilesX;
 	private int tilesY;
 
+	private Palette palette;
 	private int zoom;
 	private int selectedPalette;
+	private ColorBitDepth bitDepth;
 
 	private boolean doDrawBackground;
 	private boolean doDrawTileGrid;
@@ -46,10 +51,8 @@ public class TilePanel extends JPanel implements MouseListener, MouseMotionListe
 	private int pointedX;
 	private int pointedY;
 
-	public TilePanel(EditionPanel editionPanel, String tileName, Tile[] tiles, int tileX, int tileY, Palette palette) {
-		this.editionPanel = editionPanel;
+	public TilePanel(String tileName, Tile[] tiles, int tileX, int tileY) {
 		this.tileName = tileName;
-		this.palette = palette;
 		this.tilesX = tileX;
 		this.tilesY = tileY;
 		this.tiles = tiles;
@@ -64,7 +67,11 @@ public class TilePanel extends JPanel implements MouseListener, MouseMotionListe
 		this.pointedX = -1;
 		this.pointedY = -1;
 
-		this.setPreferredSize(new Dimension(8 * tilesX * zoom, 8 * tilesY * zoom));
+		updateSize();
+
+		// Tries to get the palette with the tile name, or default
+		palette = OpenedResourceManager.getInstance().getPaletteOrAvailable(tileName);
+		bitDepth = ColorBitDepth.fromBitDepth(palette.getBitDepth());
 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
@@ -79,6 +86,7 @@ public class TilePanel extends JPanel implements MouseListener, MouseMotionListe
 	public void setZoom(int zoom) {
 		this.zoom = zoom;
 		updateSize();
+		this.getParent().revalidate();
 		repaint();
 	}
 
@@ -101,10 +109,14 @@ public class TilePanel extends JPanel implements MouseListener, MouseMotionListe
 		updateSize();
 		revalidate();
 	}
-	
+
 	public void setPaletteIndex(int selectedIndex) {
 		selectedPalette = selectedIndex;
 		repaint();
+	}
+
+	public void setPaletteColorBitDepth(ColorBitDepth bitDepth) {
+		this.bitDepth = bitDepth;
 	}
 
 	public void setTilesX(int tilesX) {
@@ -217,45 +229,83 @@ public class TilePanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 
 	@EventListener
-	public void onTilePropertiesChanged(TilePropertiesChangedEvent event) {
-		// Only change when it's the same name
-		if (event.getTileName().equals(tileName)) {
-			switch (event.getProperty()) {
-			case ZOOM:
-				setZoom(event.getValue());
-				break;
-
-			case SELECTED_PALETTE:
-				setPaletteIndex(event.getValue());
-				break;
-
-			case TILE_X:
-				setTilesX(event.getValue());
-				break;
-
-			case TILE_Y:
-				setTilesY(event.getValue());
-				break;
-
-			case SHOW_TILE_GRID:
-				setDoDrawTileGrid(event.getValue() == 1);
-				break;
-
-			case SHOW_PIXEL_GRID:
-				setDoDrawPixelGrid(event.getValue() == 1);
-				break;
-
-			case TRANSPARENT_BG:
-				setDoDrawBackground(event.getValue() == 1);
-				break;
-			}
+	public void onPaletteSelected(TilesPaletteSelectedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			this.palette = OpenedResourceManager.getInstance().getPalette(event.getPaletteName());
+			setPaletteColorBitDepth(ColorBitDepth.fromBitDepth(palette.getBitDepth()));
+			this.repaint();
 		}
 	}
 
 	@EventListener
-	public void onPaletteSelected(PaletteSelectedEvent event) {
-		this.palette = editionPanel.getCurrentPalette();
-		this.repaint();
+	public void onZoomChanged(TilesZoomChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setZoom(event.getZoom());
+		}
+	}
+
+	@EventListener
+	public void onPaletteIndexChanged(TilesPaletteIndexChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setPaletteIndex(event.getPaletteIndex());
+		}
+	}
+
+	@EventListener
+	public void onPaletteColorDepthChanged(TilesPaletteColorDepthChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setPaletteColorBitDepth(event.getColorBitDepth());
+		}
+	}
+
+	@EventListener
+	public void onTilesPerColumnChanged(TilesPerColumnChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setTilesX(event.getTileX());
+		}
+	}
+
+	@EventListener
+	public void onTilesPerRowChanged(TilesPerRowChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setTilesY(event.getTileY());
+		}
+	}
+
+	@EventListener
+	public void onShowTileGridChanged(TilesTileGridChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setDoDrawTileGrid(event.isShowTileGrid());
+		}
+	}
+
+	@EventListener
+	public void onShowPixelGridChanged(TilesPixelGridChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setDoDrawPixelGrid(event.isShowPixelGrid());
+		}
+	}
+
+	@EventListener
+	public void onShowTransparentBackgroundChanged(TilesTransparentBackgroundChangedEvent event) {
+		if (this.tileName.equals(event.getTileName())) {
+			setDoDrawBackground(!event.isShowTransparentBackground());
+		}
+	}
+
+	@Override
+	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+		return 8 * zoom;
+	}
+
+	@Override
+	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+		return 8 * zoom;
+	}
+
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return getPreferredSize();
 	}
 
 	@Override

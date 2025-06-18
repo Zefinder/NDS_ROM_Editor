@@ -12,7 +12,7 @@ import javax.swing.border.EmptyBorder;
 
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteOpenedEvent;
-import pokemon.event.tile.TileOpenedEvent;
+import pokemon.event.tile.TilesOpenedEvent;
 import pokemon.frame.panel.properties.PalettePropertiesPanel;
 import pokemon.frame.panel.properties.TilePropertiesPanel;
 import pokemon.manager.EventManager;
@@ -76,7 +76,7 @@ public class PropertiesPanel extends JPanel {
 	}
 
 	@EventListener
-	public void onTileOpened(TileOpenedEvent event) {
+	public void onTileOpened(TilesOpenedEvent event) {
 		// Cannot create twice the same properties
 		if (!openProperties.containsKey(event.getTileName())) {
 			JPanel tileProperties = new TilePropertiesPanel(event.getTileName(), event.getColorBitDepth(),

@@ -4,14 +4,20 @@ import pokemon.event.Event;
 
 public class TileSelectedEvent implements Event {
 	
-	private String tileName;
+	private int tileIndex;
+	private int[][] tileData;
 	
-	public TileSelectedEvent(String tileName) {
-		this.tileName = tileName;
+	public TileSelectedEvent(int tileIndex, int[][] tileData) {
+		this.tileIndex = tileIndex;
+		this.tileData = tileData;
 	}
 	
-	public String getTileName() {
-		return tileName;
+	public int getTileIndex() {
+		return tileIndex;
 	}
-
+	
+	public int[][] getTileData() {
+		return tileData;
+	}
+	
 }

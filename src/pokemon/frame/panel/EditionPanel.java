@@ -1,5 +1,6 @@
 package pokemon.frame.panel;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.io.DataInputStream;
@@ -25,8 +26,8 @@ import pokemon.event.Event;
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteOpenedEvent;
 import pokemon.event.palette.PaletteSelectedEvent;
-import pokemon.event.tile.TileOpenedEvent;
-import pokemon.event.tile.TileSelectedEvent;
+import pokemon.event.tile.TilesOpenedEvent;
+import pokemon.event.tile.TilesSelectedEvent;
 import pokemon.event.ui.ArchiveExtractedEvent;
 import pokemon.event.ui.FileDeletedEvent;
 import pokemon.event.ui.TreeFileOpened;
@@ -52,6 +53,7 @@ public class EditionPanel extends JDesktopPane {
 	private static final long serialVersionUID = -3697366543301729496L;
 	private static final int MAX_DISPLAY_X = 33;
 	private static final int MAX_DISPLAY_Y = 26;
+	private static final int OVERHEAD = 1;
 
 	private Map<String, Palette> paletteMap;
 	private Map<String, Tile[]> tilesMap;
@@ -62,6 +64,7 @@ public class EditionPanel extends JDesktopPane {
 	public EditionPanel() {
 		this.setBackground(Color.lightGray);
 
+		// TODO Move this to OpenedResourceManager
 		this.paletteMap = new HashMap<String, Palette>();
 		this.tilesMap = new HashMap<String, Tile[]>();
 		this.currentPalette = Palette.DEFAULT_PALETTE;
@@ -70,16 +73,14 @@ public class EditionPanel extends JDesktopPane {
 		EventManager.getInstance().registerListener(this);
 	}
 
-	private void openInternalFrame(String title, JComponent panel, Dimension dimension) {
+	private void openInternalFrame(String title, JComponent panel) {
 		JScrollPane scroll = new JScrollPane(panel);
-		scroll.setPreferredSize(dimension);
-		scroll.getVerticalScrollBar().setUnitIncrement(16);
-		scroll.getHorizontalScrollBar().setUnitIncrement(16);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
+		
 		JInternalFrame internalFrame = new JInternalFrame(title, true, true, false, true);
-		internalFrame.add(scroll);
+		internalFrame.setLayout(new BorderLayout());
+		internalFrame.getContentPane().add(scroll);
 		internalFrame.pack(); // Size defined by its panel
 
 		this.add(internalFrame);
@@ -100,7 +101,7 @@ public class EditionPanel extends JDesktopPane {
 
 			EventManager.getInstance().throwEvent(new PaletteOpenedEvent(paletteName, palette, isPaletteSelected));
 			PalettePanel panel = new PalettePanel(palette);
-			openInternalFrame(paletteName, panel, panel.getPreferredSize());
+			openInternalFrame(paletteName, panel);
 		}
 	}
 
@@ -119,12 +120,10 @@ public class EditionPanel extends JDesktopPane {
 			int tileY = ncgr.getTileY();
 
 			EventManager.getInstance().throwEvent(
-					new TileOpenedEvent(tilesName, ncgr.getColorBitDepth(), tileX, tileY, areTilesSelected));
-
-			int width = Math.min(8 * MAX_DISPLAY_X * 3, 8 * tileX * 5);
-			int height = Math.min(8 * MAX_DISPLAY_Y * 3, 8 * tileY * 5);
-			TilePanel panel = new TilePanel(this, tilesName, tiles, tileX, tileY, currentPalette);
-			openInternalFrame(tilesName, panel, new Dimension(width, height));
+					new TilesOpenedEvent(tilesName, ncgr.getColorBitDepth(), tileX, tileY, areTilesSelected));
+			
+			TilePanel panel = new TilePanel(tilesName, tiles, tileX, tileY);
+			openInternalFrame(tilesName, panel);
 		}
 	}
 
@@ -133,10 +132,8 @@ public class EditionPanel extends JDesktopPane {
 		int screenWidth = nscr.getScreenWidth();
 		int screenHeight = nscr.getScreenHeight();
 
-		int width = Math.min(8 * MAX_DISPLAY_X * 3, 8 * screenWidth * 5);
-		int height = Math.min(8 * MAX_DISPLAY_Y * 3, 8 * screenHeight * 5);
-		ScreenPanel panel = new ScreenPanel(this, screenData, currentPalette, currentTiles, screenWidth, screenHeight);
-		openInternalFrame(screenName, panel, new Dimension(width, height));
+		ScreenPanel panel = new ScreenPanel(screenData, currentPalette, currentTiles, screenWidth, screenHeight);
+		openInternalFrame(screenName, panel);
 	}
 
 	private void extractArchive(File archiveFile) throws IOException {
@@ -158,10 +155,12 @@ public class EditionPanel extends JDesktopPane {
 //		archiveFile.delete();
 	}
 
+	@Deprecated(forRemoval = true)
 	public Palette getCurrentPalette() {
 		return currentPalette;
 	}
 
+	@Deprecated(forRemoval = true)
 	public Tile[] getCurrentTiles() {
 		return currentTiles;
 	}
@@ -230,6 +229,7 @@ public class EditionPanel extends JDesktopPane {
 		}
 	}
 
+	// TODO Remove, no global palette
 	@EventListener
 	public void onPaletteSelected(PaletteSelectedEvent event) {
 		if (paletteMap.containsKey(event.getPaletteName())) {
@@ -237,7 +237,9 @@ public class EditionPanel extends JDesktopPane {
 		}
 	}
 
-	public void onTileSelectedEvent(TileSelectedEvent event) {
+	// TODO Remove, no global tiles
+	@EventListener
+	public void onTileSelectedEvent(TilesSelectedEvent event) {
 		if (tilesMap.containsKey(event.getTileName())) {
 			currentTiles = tilesMap.get(event.getTileName());
 		}

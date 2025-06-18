@@ -1,18 +1,19 @@
-package pokemon.event.ui;
+package pokemon.event.tile;
 
 import pokemon.event.Event;
 
+@Deprecated(forRemoval = true)
 public class TilePropertiesChangedEvent implements Event {
 	
-	public enum ChangedProperty {
+	public enum TilePropertyChanged {
 		ZOOM, SELECTED_PALETTE, TILE_X, TILE_Y, TRANSPARENT_BG, SHOW_TILE_GRID, SHOW_PIXEL_GRID;
 	}
 	
 	private String tileName;
-	private ChangedProperty property;
+	private TilePropertyChanged property;
 	private int value;
 	
-	public TilePropertiesChangedEvent(String tileName, ChangedProperty property, int value) {
+	public TilePropertiesChangedEvent(String tileName, TilePropertyChanged property, int value) {
 		this.tileName = tileName;
 		this.property = property;
 		this.value = value;
@@ -22,7 +23,7 @@ public class TilePropertiesChangedEvent implements Event {
 		return tileName;
 	}
 	
-	public ChangedProperty getProperty() {
+	public TilePropertyChanged getProperty() {
 		return property;
 	}
 	
