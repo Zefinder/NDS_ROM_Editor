@@ -25,14 +25,14 @@ public class ScreenData {
 
 	}
 
-	public Color[] processTile(Tile[] tiles, Palette palette) {
+	public Color[] processTile(Tiles tiles, Palette palette) {
 		Color[] colors = new Color[Tile.TILE_SIZE * Tile.TILE_SIZE];
-		if (tileNumber >= tiles.length) {
+		if (tileNumber >= tiles.getNumberOfTiles()) {
 			for (int i = 0; i < colors.length; i++) {
 				colors[i] = Color.black;
 			}
 		} else {
-			Tile tile = tiles[tileNumber];
+			Tile tile = tiles.getTile(tileNumber);
 			int[][] tileData = tile.getTileData();
 
 			// Process tile flips

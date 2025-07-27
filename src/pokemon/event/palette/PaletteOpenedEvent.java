@@ -7,12 +7,10 @@ public class PaletteOpenedEvent implements Event {
 	
 	private String paletteName;
 	private Palette openedPalette;
-	private boolean isPaletteSelected;
 	
-	public PaletteOpenedEvent(String paletteName, Palette openedPalette, boolean isPaletteSelected) {
+	public PaletteOpenedEvent(String paletteName, Palette openedPalette) {
 		this.paletteName = paletteName;
 		this.openedPalette = openedPalette;
-		this.isPaletteSelected = isPaletteSelected;
 	}
 	
 	public String getPaletteName() {
@@ -22,9 +20,4 @@ public class PaletteOpenedEvent implements Event {
 	public Palette getOpenedPalette() {
 		return openedPalette;
 	}
-	
-	public boolean isPaletteSelected() {
-		return isPaletteSelected;
-	}
-
 }

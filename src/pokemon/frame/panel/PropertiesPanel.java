@@ -31,7 +31,7 @@ public class PropertiesPanel extends JPanel {
 	private GridBagConstraints c;
 
 	// TODO Create types of panels (palette panels, tile panels, etc...)
-	
+
 	public PropertiesPanel() {
 		openProperties = new HashMap<String, JPanel>();
 		this.setLayout(new BorderLayout());
@@ -67,8 +67,7 @@ public class PropertiesPanel extends JPanel {
 	public void onPaletteOpened(PaletteOpenedEvent event) {
 		// Cannot create twice the same properties
 		if (!openProperties.containsKey(event.getPaletteName())) {
-			JPanel paletteProperties = new PalettePropertiesPanel(event.getPaletteName(), event.getOpenedPalette(),
-					event.isPaletteSelected());
+			JPanel paletteProperties = new PalettePropertiesPanel(event.getPaletteName(), event.getOpenedPalette());
 			openProperties.put(event.getPaletteName(), paletteProperties);
 			addProperty(paletteProperties);
 			// TODO Send event palette properties added
@@ -80,7 +79,7 @@ public class PropertiesPanel extends JPanel {
 		// Cannot create twice the same properties
 		if (!openProperties.containsKey(event.getTileName())) {
 			JPanel tileProperties = new TilePropertiesPanel(event.getTileName(), event.getColorBitDepth(),
-					event.getTileX(), event.getTileY(), event.isSelected());
+					event.getTileX(), event.getTileY());
 			openProperties.put(event.getTileName(), tileProperties);
 			addProperty(tileProperties);
 			// TODO Send event tile properties added

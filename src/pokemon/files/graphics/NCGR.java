@@ -13,6 +13,7 @@ import pokemon.files.types.TypeEnum;
 import pokemon.files.types.TypedArray;
 import pokemon.files.types.TypedNumber;
 import pokemon.logic.Tile;
+import pokemon.logic.Tiles;
 
 public class NCGR extends FileFormat {
 
@@ -35,7 +36,7 @@ public class NCGR extends FileFormat {
 		this(0, 0, ColorBitDepth.FOUR_BIT_DEPTH);
 	}
 
-	public Tile[] createTiles() {
+	public Tiles createTiles() {
 		return rahc.getTiles();
 	}
 
@@ -117,8 +118,8 @@ public class NCGR extends FileFormat {
 			super.setSize(DEFAULT_RAHC_SIZE + TypeEnum.UINT8.getByteSize() * 64 * tileX * tileY);
 		}
 
-		public Tile[] getTiles() {
-			Tile[] tiles = new Tile[tileY.getIntValue() * tileX.getIntValue()];
+		public Tiles getTiles() {
+			Tile[] tileArray = new Tile[tileY.getIntValue() * tileX.getIntValue()];
 			int tileX = this.tileX.getIntValue();
 			int tileY = this.tileY.getIntValue();
 			for (int indexX = 0; indexX < tileX; indexX++) {
@@ -127,10 +128,12 @@ public class NCGR extends FileFormat {
 					for (int i = 0; i < 64; i++) {
 						tileData[i] = this.tileData.getIntValue(i + 64 * indexX + 64 * tileX * indexY);
 					}
-					tiles[indexY * tileX + indexX] = new Tile(tileData);
+					tileArray[indexY * tileX + indexX] = new Tile(tileData);
 				}
 			}
 
+			Tiles tiles = new Tiles(tileArray, tileX, tileY);
+			tiles.setColorBitDepth(getColorBitDepth());
 			return tiles;
 		}
 

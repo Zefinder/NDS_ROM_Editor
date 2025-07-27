@@ -24,9 +24,7 @@ public class PalettePropertiesPanel extends FormatProperties {
 	private static final DefaultComboBoxModel<Integer> EIGHT_BITS_MODEL = new DefaultComboBoxModel<Integer>(
 			new Integer[] { 1 });
 
-	private String paletteName;
 
-//	private JButton paletteSelectionButton;
 	private JComboBox<String> colorBitDepthList;
 	private JComboBox<Integer> paletteNumberList;
 
@@ -40,8 +38,7 @@ public class PalettePropertiesPanel extends FormatProperties {
 	 * </ul>
 	 * </p>
 	 */
-	public PalettePropertiesPanel(String paletteName, Palette palette, boolean isPaletteSelected) {
-		this.paletteName = paletteName;
+	public PalettePropertiesPanel(String paletteName, Palette palette) {
 		this.setBorder(BorderFactory.createTitledBorder(paletteName));
 		
 		// Check if 4 bits depth
@@ -50,12 +47,6 @@ public class PalettePropertiesPanel extends FormatProperties {
 		GridBagConstraints c = super.getDefaultConstraints();
 		c.insets = new Insets(3, 8, 2, 8);
 		
-		// Use palette button
-//		paletteSelectionButton = new JButton("Use palette");
-//		paletteSelectionButton
-//				.addActionListener(_ -> EventManager.getInstance().throwEvent(new PaletteSelectedEvent(paletteName)));
-//		paletteSelectionButton.setEnabled(!isPaletteSelected);
-
 		// Color bit depth, changing color depth does not change anything to the display
 		JLabel colorBitDepthLabel = new JLabel("Color bit depth", SwingConstants.CENTER);
 		colorBitDepthList = new JComboBox<String>(new String[] { "4 bits", "8 bits" });
@@ -68,8 +59,6 @@ public class PalettePropertiesPanel extends FormatProperties {
 				palette.setBitDepth(ColorBitDepth.EIGHT_BIT_DEPTH.getBitDepthValue());
 				paletteNumberList.setModel(EIGHT_BITS_MODEL);
 			}
-			
-			// TODO Send event palette bit changed
 		});
 
 		// Number of palettes
@@ -77,8 +66,6 @@ public class PalettePropertiesPanel extends FormatProperties {
 		paletteNumberList = new JComboBox<Integer>(isFourBitsDepth ? FOUR_BITS_MODEL : EIGHT_BITS_MODEL);
 		paletteNumberList.addActionListener(_ -> {
 			palette.setPaletteNumber((int) paletteNumberList.getSelectedItem());
-			
-			// TODO Send event palette color number changed
 		});
 		paletteNumberList.setSelectedIndex(palette.getPaletteNumber() - 1);
 
@@ -89,11 +76,5 @@ public class PalettePropertiesPanel extends FormatProperties {
 
 		EventManager.getInstance().registerListener(this);
 	}
-
-//	@EventListener
-//	public void onPaletteSelected(PaletteSelectedEvent event) {
-//		paletteSelectionButton.setEnabled(!paletteName.equals(event.getPaletteName()));
-//		repaint();
-//	}
-
+	
 }

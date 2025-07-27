@@ -23,10 +23,11 @@ import pokemon.event.tile.TilesZoomChangedEvent;
 import pokemon.files.graphics.GraphicResources.ColorBitDepth;
 import pokemon.logic.Palette;
 import pokemon.logic.Tile;
+import pokemon.logic.Tiles;
 import pokemon.manager.EventManager;
 import pokemon.manager.OpenedResourceManager;
 
-public class TilePanel extends FileUIEditionPanel {
+public class TilesPanel extends FileUIEditionPanel {
 
 	/**
 	 * 
@@ -34,7 +35,7 @@ public class TilePanel extends FileUIEditionPanel {
 	private static final long serialVersionUID = 1381704300700120039L;
 
 	private String tileName;
-	private Tile[] tiles;
+	private Tiles tiles;
 
 	private int tilesX;
 	private int tilesY;
@@ -51,7 +52,7 @@ public class TilePanel extends FileUIEditionPanel {
 	private int pointedX;
 	private int pointedY;
 
-	public TilePanel(String tileName, Tile[] tiles, int tileX, int tileY) {
+	public TilesPanel(String tileName, Tiles tiles, int tileX, int tileY) {
 		this.tileName = tileName;
 		this.tilesX = tileX;
 		this.tilesY = tileY;
@@ -90,26 +91,6 @@ public class TilePanel extends FileUIEditionPanel {
 		repaint();
 	}
 
-	private void resizeTiles() {
-		// Check if need to resize array
-		if (tiles.length < tilesX * tilesY) {
-			Tile[] newTiles = new Tile[tilesX * tilesY];
-
-			// Copy old tiles
-			for (int i = 0; i < tiles.length; i++) {
-				newTiles[i] = tiles[i];
-			}
-
-			// Create new empty tiles
-			for (int i = tiles.length; i < newTiles.length; i++) {
-				newTiles[i] = new Tile();
-			}
-		}
-
-		updateSize();
-		revalidate();
-	}
-
 	public void setPaletteIndex(int selectedIndex) {
 		selectedPalette = selectedIndex;
 		repaint();
@@ -120,14 +101,14 @@ public class TilePanel extends FileUIEditionPanel {
 	}
 
 	public void setTilesX(int tilesX) {
+		tiles.resizeXTiles(tilesX);
 		this.tilesX = tilesX;
-		resizeTiles();
 		repaint();
 	}
 
 	public void setTilesY(int tilesY) {
+		tiles.resizeYTiles(tilesY);
 		this.tilesY = tilesY;
-		resizeTiles();
 		repaint();
 	}
 
@@ -151,11 +132,10 @@ public class TilePanel extends FileUIEditionPanel {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 
-		int tileIndex = 0;
 		for (int y = 0; y < tilesY; y++) {
 			for (int x = 0; x < tilesX; x++) {
 				// There will always be enough tiles!
-				Tile tile = tiles[tileIndex++];
+				Tile tile = tiles.getTile(x, y);
 				int baseX = x * Tile.TILE_SIZE * zoom;
 				int baseY = y * Tile.TILE_SIZE * zoom;
 

@@ -60,8 +60,7 @@ public class TilePropertiesPanel extends FormatProperties {
 	 * </ul>
 	 * </p>
 	 */
-	public TilePropertiesPanel(String tileName, ColorBitDepth colorBitDepth, int tileX, int tileY,
-			boolean isTileSelected) {
+	public TilePropertiesPanel(String tileName, ColorBitDepth colorBitDepth, int tileX, int tileY) {
 		this.setBorder(BorderFactory.createTitledBorder(tileName));
 
 		GridBagConstraints c = super.getDefaultConstraints();
@@ -95,7 +94,7 @@ public class TilePropertiesPanel extends FormatProperties {
 			if (colorBitDepthList.getSelectedIndex() == 0) {
 				// TODO Send event to change mode for tiles
 				usedPaletteList.setModel(FOUR_BITS_MODEL);
-				
+
 			} else {
 				// TODO Send event to change mode for tiles
 				usedPaletteList.setModel(EIGHT_BITS_MODEL);

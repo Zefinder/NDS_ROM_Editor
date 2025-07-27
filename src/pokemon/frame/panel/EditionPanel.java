@@ -2,7 +2,6 @@ package pokemon.frame.panel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,8 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.swing.JComponent;
@@ -25,9 +22,7 @@ import javax.swing.JScrollPane;
 import pokemon.event.Event;
 import pokemon.event.EventListener;
 import pokemon.event.palette.PaletteOpenedEvent;
-import pokemon.event.palette.PaletteSelectedEvent;
 import pokemon.event.tile.TilesOpenedEvent;
-import pokemon.event.tile.TilesSelectedEvent;
 import pokemon.event.ui.ArchiveExtractedEvent;
 import pokemon.event.ui.FileDeletedEvent;
 import pokemon.event.ui.TreeFileOpened;
@@ -39,11 +34,12 @@ import pokemon.files.graphics.NCLR;
 import pokemon.files.graphics.NSCR;
 import pokemon.frame.panel.edition.PalettePanel;
 import pokemon.frame.panel.edition.ScreenPanel;
-import pokemon.frame.panel.edition.TilePanel;
+import pokemon.frame.panel.edition.TilesPanel;
 import pokemon.logic.Palette;
 import pokemon.logic.ScreenData;
-import pokemon.logic.Tile;
+import pokemon.logic.Tiles;
 import pokemon.manager.EventManager;
+import pokemon.manager.OpenedResourceManager;
 
 public class EditionPanel extends JDesktopPane {
 
@@ -51,25 +47,10 @@ public class EditionPanel extends JDesktopPane {
 	 * 
 	 */
 	private static final long serialVersionUID = -3697366543301729496L;
-	private static final int MAX_DISPLAY_X = 33;
-	private static final int MAX_DISPLAY_Y = 26;
-	private static final int OVERHEAD = 1;
-
-	private Map<String, Palette> paletteMap;
-	private Map<String, Tile[]> tilesMap;
-	private Palette currentPalette;
-	private Tile[] currentTiles;
 
 	// Normal light grey panel but implements open events and opens internal frames
 	public EditionPanel() {
 		this.setBackground(Color.lightGray);
-
-		// TODO Move this to OpenedResourceManager
-		this.paletteMap = new HashMap<String, Palette>();
-		this.tilesMap = new HashMap<String, Tile[]>();
-		this.currentPalette = Palette.DEFAULT_PALETTE;
-		this.currentTiles = Tile.DEFAULT_TILES;
-
 		EventManager.getInstance().registerListener(this);
 	}
 
@@ -77,7 +58,7 @@ public class EditionPanel extends JDesktopPane {
 		JScrollPane scroll = new JScrollPane(panel);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		
+
 		JInternalFrame internalFrame = new JInternalFrame(title, true, true, false, true);
 		internalFrame.setLayout(new BorderLayout());
 		internalFrame.getContentPane().add(scroll);
@@ -89,40 +70,26 @@ public class EditionPanel extends JDesktopPane {
 
 	private void openInternalPatternFrame(NCLR nclr, String paletteName) {
 		// Do nothing if palette opened
-		if (!paletteMap.containsKey(paletteName)) {
+		if (!OpenedResourceManager.getInstance().hasOpenedPalette(paletteName)) {
 			Palette palette = nclr.createPalette();
-			boolean isPaletteSelected = false;
-			paletteMap.put(paletteName, palette);
 
-			if (currentPalette == Palette.DEFAULT_PALETTE) {
-				currentPalette = palette;
-				isPaletteSelected = true;
-			}
-
-			EventManager.getInstance().throwEvent(new PaletteOpenedEvent(paletteName, palette, isPaletteSelected));
+			EventManager.getInstance().throwEvent(new PaletteOpenedEvent(paletteName, palette));
 			PalettePanel panel = new PalettePanel(palette);
 			openInternalFrame(paletteName, panel);
 		}
 	}
 
 	private void openInternalTileFrame(NCGR ncgr, String tilesName) {
-		if (!tilesMap.containsKey(tilesName)) {
-			Tile[] tiles = ncgr.createTiles();
-			boolean areTilesSelected = false;
-			tilesMap.put(tilesName, tiles);
-
-			if (currentTiles == Tile.DEFAULT_TILES) {
-				currentTiles = tiles;
-				areTilesSelected = true;
-			}
+		// Do nothing if tiles opened
+		if (!OpenedResourceManager.getInstance().hasOpenedTiles(tilesName)) {
+			Tiles tiles = ncgr.createTiles();
 
 			int tileX = ncgr.getTileX();
 			int tileY = ncgr.getTileY();
 
-			EventManager.getInstance().throwEvent(
-					new TilesOpenedEvent(tilesName, ncgr.getColorBitDepth(), tileX, tileY, areTilesSelected));
-			
-			TilePanel panel = new TilePanel(tilesName, tiles, tileX, tileY);
+			EventManager.getInstance().throwEvent(new TilesOpenedEvent(tilesName, tiles));
+
+			TilesPanel panel = new TilesPanel(tilesName, tiles, tileX, tileY);
 			openInternalFrame(tilesName, panel);
 		}
 	}
@@ -132,7 +99,7 @@ public class EditionPanel extends JDesktopPane {
 		int screenWidth = nscr.getScreenWidth();
 		int screenHeight = nscr.getScreenHeight();
 
-		ScreenPanel panel = new ScreenPanel(screenData, currentPalette, currentTiles, screenWidth, screenHeight);
+		ScreenPanel panel = new ScreenPanel(screenName, screenData, screenWidth, screenHeight);
 		openInternalFrame(screenName, panel);
 	}
 
@@ -150,19 +117,9 @@ public class EditionPanel extends JDesktopPane {
 		// Notify UI that a new directory has been created
 		Event event = new ArchiveExtractedEvent(archiveFile.toPath(), narc.getExtractDir().toPath());
 		EventManager.getInstance().throwEvent(event);
-		
+
 		// Delete file
 //		archiveFile.delete();
-	}
-
-	@Deprecated(forRemoval = true)
-	public Palette getCurrentPalette() {
-		return currentPalette;
-	}
-
-	@Deprecated(forRemoval = true)
-	public Tile[] getCurrentTiles() {
-		return currentTiles;
 	}
 
 	@EventListener
@@ -191,7 +148,7 @@ public class EditionPanel extends JDesktopPane {
 				// Notify deleted archive
 				Event archiveDirectoryDeleted = new FileDeletedEvent(destDir);
 				EventManager.getInstance().throwEvent(archiveDirectoryDeleted);
-				
+
 				// Delete directory
 				try (Stream<Path> paths = Files.walk(destDir.toPath())) {
 					paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
@@ -201,7 +158,6 @@ public class EditionPanel extends JDesktopPane {
 			// Extract archive
 			extractArchive(event.getPath().toFile());
 		} else {
-
 			// Get empty constructor and create object
 			Class<? extends FileFormat> formatClass = format.getFormatClass();
 			FileFormat fileFormat = formatClass.getConstructor().newInstance();
@@ -226,22 +182,6 @@ public class EditionPanel extends JDesktopPane {
 				// Should not go here, must have been processed earlier
 				break;
 			}
-		}
-	}
-
-	// TODO Remove, no global palette
-	@EventListener
-	public void onPaletteSelected(PaletteSelectedEvent event) {
-		if (paletteMap.containsKey(event.getPaletteName())) {
-			currentPalette = paletteMap.get(event.getPaletteName());
-		}
-	}
-
-	// TODO Remove, no global tiles
-	@EventListener
-	public void onTileSelectedEvent(TilesSelectedEvent event) {
-		if (tilesMap.containsKey(event.getTileName())) {
-			currentTiles = tilesMap.get(event.getTileName());
 		}
 	}
 

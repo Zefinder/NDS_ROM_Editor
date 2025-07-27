@@ -73,12 +73,6 @@ public class PalettePanel extends FileUIEditionPanel {
 		}
 	}
 
-	@EventListener
-	public void onPaletteColorChanged(PaletteColorModifiedEvent event) {
-		palette.setColorInPalette(event.getPaletteNumber(), event.getIndex(), event.getNewColor());
-		repaint();
-	}
-
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() == 2) {
@@ -90,6 +84,7 @@ public class PalettePanel extends FileUIEditionPanel {
 				Color newColor = JColorChooser.showDialog(null, "Change color", oldColor);
 				
 				if (newColor != null) {
+					palette.setColorInPalette(selectedPalette, selectedIndex, newColor);
 					Event colorChangedEvent = new PaletteColorModifiedEvent(selectedPalette, selectedIndex, oldColor,
 							newColor);
 					EventManager.getInstance().throwEvent(colorChangedEvent);
